@@ -128,7 +128,6 @@ function LearnerDashboard({ username, setGlobalUsername }) {
         </div>
       </div>
     </div>
-    </div>
   );
 }
 
