@@ -31,7 +31,7 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
   const [videoEnabled, setVideoEnabled] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const localVideoRef = useRef(null);
-  const localStreamRef = useRef(null);
+  const localStream = useRef(new MediaStream());
 
   const peersRef = useRef({});
   const [remoteStreams, setRemoteStreams] = useState({});
@@ -64,11 +64,10 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
           setRemoteStreams(prev => ({ ...prev, [targetId]: stream }));
         };
 
-        if (localStreamRef.current) {
-          localStreamRef.current.getTracks().forEach(track => {
-            pc.addTrack(track, localStreamRef.current);
-          });
-        }
+        // Attach whatever tracks we currently have
+        localStream.current.getTracks().forEach(track => {
+          pc.addTrack(track, localStream.current);
+        });
 
         peersRef.current[targetId] = pc;
       }
@@ -93,7 +92,7 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
     const handleIceCandidate = async ({ fromId, candidate }) => {
       const pc = peersRef.current[fromId];
       if (pc) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error("WebRTC ICE Failed:", e));
+        await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
       }
     };
 
@@ -108,7 +107,6 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
     socket.on('webrtc_offer', handleOffer);
     socket.on('webrtc_answer', handleAnswer);
     socket.on('webrtc_ice_candidate', handleIceCandidate);
-    socket.on('user_video_enabled', () => {});
     socket.on('user_video_disabled', handleUserVideoDisabled);
 
     return () => {
@@ -134,11 +132,25 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
     });
   }, [users]);
 
+  // Keep local video preview updated
   useEffect(() => {
-    if (videoEnabled && localVideoRef.current && localStreamRef.current) {
-      localVideoRef.current.srcObject = localStreamRef.current;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream.current;
     }
-  }, [videoEnabled]);
+  }, [videoEnabled, audioEnabled]);
+
+  const renegotiate = async () => {
+    for (const targetId in peersRef.current) {
+      const pc = peersRef.current[targetId];
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('webrtc_offer', { targetId, offer });
+      } catch (err) {
+        console.error("Renegotiation failed", err);
+      }
+    }
+  };
 
   const toggleMedia = async (type) => {
     const isVideo = type === 'video';
@@ -146,84 +158,54 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
 
     try {
       if (!currentlyEnabled) {
-        // Turning ON: Request the specific track needed
-        const stream = await navigator.mediaDevices.getUserMedia({
+        // TURN ON
+        const newStream = await navigator.mediaDevices.getUserMedia({
           video: isVideo,
           audio: !isVideo
         });
-
-        const newTrack = stream.getTracks()[0];
+        const newTrack = newStream.getTracks()[0];
         
-        if (!localStreamRef.current) {
-          localStreamRef.current = new MediaStream();
-        }
+        localStream.current.addTrack(newTrack);
         
-        // Remove any existing dead tracks of the same kind
-        localStreamRef.current.getTracks().forEach(t => {
-          if (t.kind === newTrack.kind) {
-            localStreamRef.current.removeTrack(t);
-            t.stop();
-          }
-        });
-        
-        localStreamRef.current.addTrack(newTrack);
-
         if (isVideo) {
           setVideoEnabled(true);
-          if (localVideoRef.current) localVideoRef.current.srcObject = localStreamRef.current;
-          if (socket) socket.emit('video_enabled');
+          socket.emit('video_enabled');
         } else {
           setAudioEnabled(true);
         }
 
-        // Update all active peer connections
+        // Add to all peer connections
         for (const targetId in peersRef.current) {
-          const pc = peersRef.current[targetId];
-          
-          // Remove old sender for this kind if it exists
-          const senders = pc.getSenders();
-          const oldSender = senders.find(s => s.track && s.track.kind === newTrack.kind);
-          if (oldSender) pc.removeTrack(oldSender);
+          peersRef.current[targetId].addTrack(newTrack, localStream.current);
+        }
+        await renegotiate();
 
-          pc.addTrack(newTrack, localStreamRef.current);
-          
-          // Renegotiate
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket.emit('webrtc_offer', { targetId, offer });
-        }
       } else {
-        // Turning OFF: Stop and remove the specific track
-        if (localStreamRef.current) {
-          const tracks = localStreamRef.current.getTracks().filter(t => t.kind === (isVideo ? 'video' : 'audio'));
-          tracks.forEach(t => {
-            t.stop();
-            localStreamRef.current.removeTrack(t);
-          });
-        }
+        // TURN OFF
+        const tracks = localStream.current.getTracks().filter(t => t.kind === (isVideo ? 'video' : 'audio'));
+        tracks.forEach(t => {
+          t.stop();
+          localStream.current.removeTrack(t);
+        });
 
         if (isVideo) {
           setVideoEnabled(false);
-          if (socket) socket.emit('video_disabled');
+          socket.emit('video_disabled');
         } else {
           setAudioEnabled(false);
         }
 
-        // Notify peers to remove this track from their view
+        // Remove from all peer connections
         for (const targetId in peersRef.current) {
           const pc = peersRef.current[targetId];
-          const senders = pc.getSenders();
-          const sender = senders.find(s => s.track && s.track.kind === (isVideo ? 'video' : 'audio'));
+          const sender = pc.getSenders().find(s => s.track && s.track.kind === (isVideo ? 'video' : 'audio'));
           if (sender) pc.removeTrack(sender);
-          
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket.emit('webrtc_offer', { targetId, offer });
         }
+        await renegotiate();
       }
     } catch (err) {
-      console.error("Media error:", err);
-      alert("Could not access device. Please check permissions.");
+      console.error("Media Toggle Error:", err);
+      alert("Could not access device. Check browser permissions.");
     }
   };
 
