@@ -118,6 +118,27 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
   }, [socket]);
 
   useEffect(() => {
+    if (!socket) return;
+
+    // 1. Monitor users list and initiate connections to new people
+    users.forEach(user => {
+      if (user.id !== socket.id && !peersRef.current[user.id]) {
+        const pc = createPeer(user.id);
+        
+        // The "Newcomer" or the one with the higher ID initiates to prevent double-offers
+        if (socket.id > user.id) {
+          (async () => {
+             try {
+               const offer = await pc.createOffer();
+               await pc.setLocalDescription(offer);
+               socket.emit('webrtc_offer', { targetId: user.id, offer });
+             } catch (err) { console.error("Initial offer failed", err); }
+          })();
+        }
+      }
+    });
+
+    // 2. Clean up detached peers if users leave room
     const activeIds = users.map(u => u.id);
     Object.keys(peersRef.current).forEach(id => {
       if (!activeIds.includes(id)) {
@@ -130,7 +151,7 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
         });
       }
     });
-  }, [users]);
+  }, [users, socket]);
 
   // Keep local video preview updated
   useEffect(() => {
