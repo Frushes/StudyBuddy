@@ -5,19 +5,22 @@ const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
+  port: process.env.DB_PORT || 3306,
+  ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null
 };
 
 let pool;
 
 async function initDB() {
+  const dbName = process.env.DB_NAME || 'studybuddy_db';
   try {
     const connection = await mysql.createConnection(dbConfig);
-    await connection.query('CREATE DATABASE IF NOT EXISTS studybuddy_db');
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
     await connection.end();
 
     pool = mysql.createPool({
       ...dbConfig,
-      database: 'studybuddy_db',
+      database: dbName,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
