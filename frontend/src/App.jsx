@@ -67,7 +67,7 @@ function App() {
 
   return (
     // We use HashRouter here instead of BrowserRouter so direct links don't break in dev servers without fallback routing
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login setGlobalUsername={setGlobalUsername} socket={socket} />} />
@@ -87,7 +87,7 @@ function App() {
           />
         } />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
