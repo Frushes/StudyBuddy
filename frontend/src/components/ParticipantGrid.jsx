@@ -146,25 +146,27 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
 
     try {
       if (!currentlyEnabled) {
-        // Requesting permission
+        // Turning ON: Request the specific track needed
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: isVideo ? true : videoEnabled,
-          audio: isVideo ? audioEnabled : true
+          video: isVideo,
+          audio: !isVideo
         });
 
+        const newTrack = stream.getTracks()[0];
+        
         if (!localStreamRef.current) {
-          localStreamRef.current = stream;
-        } else {
-          // Add newly acquired tracks to existing stream
-          stream.getTracks().forEach(track => {
-            const existingTrack = localStreamRef.current.getTracks().find(t => t.kind === track.kind);
-            if (existingTrack) {
-               localStreamRef.current.removeTrack(existingTrack);
-               existingTrack.stop();
-            }
-            localStreamRef.current.addTrack(track);
-          });
+          localStreamRef.current = new MediaStream();
         }
+        
+        // Remove any existing dead tracks of the same kind
+        localStreamRef.current.getTracks().forEach(t => {
+          if (t.kind === newTrack.kind) {
+            localStreamRef.current.removeTrack(t);
+            t.stop();
+          }
+        });
+        
+        localStreamRef.current.addTrack(newTrack);
 
         if (isVideo) {
           setVideoEnabled(true);
@@ -174,31 +176,32 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
           setAudioEnabled(true);
         }
 
-        // Update all peers with new tracks
-        users.forEach(async (user) => {
-          if (socket && user.id !== socket.id) {
-            const pc = peersRef.current[user.id] || new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-            
-            // Clean out old tracks of this kind to prevent multiple tracks of same type
-            pc.getSenders().forEach(sender => {
-              if (sender.track && stream.getTracks().some(t => t.kind === sender.track.kind)) {
-                pc.removeTrack(sender);
-              }
-            });
+        // Update all active peer connections
+        for (const targetId in peersRef.current) {
+          const pc = peersRef.current[targetId];
+          
+          // Remove old sender for this kind if it exists
+          const senders = pc.getSenders();
+          const oldSender = senders.find(s => s.track && s.track.kind === newTrack.kind);
+          if (oldSender) pc.removeTrack(oldSender);
 
-            stream.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current));
-            peersRef.current[user.id] = pc;
-
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            socket.emit('webrtc_offer', { targetId: user.id, offer });
-          }
-        });
+          pc.addTrack(newTrack, localStreamRef.current);
+          
+          // Renegotiate
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('webrtc_offer', { targetId, offer });
+        }
       } else {
-        // Stopping permission
-        const tracks = localStreamRef.current.getTracks().filter(t => t.kind === (isVideo ? 'video' : 'audio'));
-        tracks.forEach(t => t.stop());
-        
+        // Turning OFF: Stop and remove the specific track
+        if (localStreamRef.current) {
+          const tracks = localStreamRef.current.getTracks().filter(t => t.kind === (isVideo ? 'video' : 'audio'));
+          tracks.forEach(t => {
+            t.stop();
+            localStreamRef.current.removeTrack(t);
+          });
+        }
+
         if (isVideo) {
           setVideoEnabled(false);
           if (socket) socket.emit('video_disabled');
@@ -206,14 +209,21 @@ function ParticipantGrid({ users, socket, isMini = false, onMaximize }) {
           setAudioEnabled(false);
         }
 
-        // If nothing left, kill stream
-        if (!videoEnabled && !audioEnabled) {
-           // wait for state update or check directly
+        // Notify peers to remove this track from their view
+        for (const targetId in peersRef.current) {
+          const pc = peersRef.current[targetId];
+          const senders = pc.getSenders();
+          const sender = senders.find(s => s.track && s.track.kind === (isVideo ? 'video' : 'audio'));
+          if (sender) pc.removeTrack(sender);
+          
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('webrtc_offer', { targetId, offer });
         }
       }
     } catch (err) {
-      console.error("Media access error:", err);
-      alert("Permission denied or device not found.");
+      console.error("Media error:", err);
+      alert("Could not access device. Please check permissions.");
     }
   };
 
