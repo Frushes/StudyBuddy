@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #0f111a;
+  --bg-panel: rgba(25, 28, 41, 0.6);
+  --bg-panel-hover: rgba(35, 40, 56, 0.8);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-color: #6c5ce7;
+  --accent-hover: #8172fb;
+  --text-main: #f8f9fa;
+  --text-muted: #a0a5b2;
+  --shadow-glow: 0 0 20px rgba(108, 92, 231, 0.3);
+  --glass-blur: blur(12px);
+  --font-family: 'Inter', sans-serif;
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-dark);
+  background-image: radial-gradient(circle at 15% 50%, rgba(108, 92, 231, 0.15), transparent 25%),
+                    radial-gradient(circle at 85% 30%, rgba(0, 210, 211, 0.1), transparent 25%);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow: hidden; /* Avoid scrollbars in the app view */
+}
+
+/* Glassmorphism Panel Utilities */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.title-main {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  transform: scale(1.05);
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-color), 0 0 15px rgba(108, 92, 231, 0.4);
+  border-color: var(--accent-color) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Setup App Grid */
+.app-container {
+  display: grid;
+  grid-template-columns: 320px 1fr 320px;
+  height: 100vh;
+  gap: 20px;
+  padding: 20px;
+}
+
+.main-focus-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+/* Utility constraints */
+.flex-row { display: flex; align-items: center; }
+.flex-col { display: flex; flex-direction: column; }
+.space-between { justify-content: space-between; }
+.center { justify-content: center; align-items: center; }
