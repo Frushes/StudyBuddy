@@ -71,8 +71,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login setGlobalUsername={setGlobalUsername} socket={socket} />} />
-        <Route path="/learner" element={<LearnerDashboard username={globalUsername} />} />
-        <Route path="/admin" element={<AdminDashboard username={globalUsername} />} />
+        <Route path="/learner" element={<LearnerDashboard username={globalUsername} setGlobalUsername={setGlobalUsername} />} />
+        <Route path="/admin" element={<AdminDashboard username={globalUsername} setGlobalUsername={setGlobalUsername} />} />
         <Route path="/room/:id" element={
           <RoomView 
             socket={socket} 

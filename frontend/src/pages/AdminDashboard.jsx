@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChartLineUp, Users, CalendarPlus, PaperPlaneRight, VideoCamera } from '@phosphor-icons/react';
+import { ChartLineUp, Users, CalendarPlus, PaperPlaneRight, VideoCamera, SignOut } from '@phosphor-icons/react';
 import { API_BASE_URL } from '../config';
 
-function AdminDashboard({ username }) {
+function AdminDashboard({ username, setGlobalUsername }) {
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('sb_user');
+    setGlobalUsername('');
+    navigate('/');
+  };
 
   // Create Room State
   const [newRoomId, setNewRoomId] = useState('');
@@ -72,9 +78,18 @@ function AdminDashboard({ username }) {
           <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Admin Portal</h1>
           <p style={{ color: 'var(--text-muted)' }}>Logged in as {username} (Supervisor)</p>
         </div>
-        <button className="btn-primary" style={{ background: '#ff9f43' }}>
-          <ChartLineUp size={20} /> Generate Report
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={handleLogout} 
+            className="btn-primary" 
+            style={{ background: '#ee5253', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <SignOut size={20} /> Logout
+          </button>
+          <button className="btn-primary" style={{ background: '#ff9f43' }}>
+            <ChartLineUp size={20} /> Generate Report
+          </button>
+        </div>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }}>

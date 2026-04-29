@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MagnifyingGlass, Users, Clock, Hash } from '@phosphor-icons/react';
+import { MagnifyingGlass, Users, Clock, Hash, SignOut } from '@phosphor-icons/react';
 import { API_BASE_URL } from '../config';
 
-function LearnerDashboard({ username }) {
+function LearnerDashboard({ username, setGlobalUsername }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [publicRooms, setPublicRooms] = useState([]);
 
   const [roomId, setRoomId] = useState('');
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('sb_user');
+    setGlobalUsername('');
+    navigate('/');
+  };
   
   React.useEffect(() => {
     const fetchPublicRooms = () => {
@@ -35,9 +41,18 @@ function LearnerDashboard({ username }) {
   return (
     <div style={{ padding: '40px', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '30px' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Welcome back, {username}!</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Join an explicitly created room or launch a private session.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div>
+            <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Welcome back, {username}!</h1>
+            <p style={{ color: 'var(--text-muted)' }}>Join an explicitly created room or launch a private session.</p>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            className="btn-primary" 
+            style={{ background: '#ee5253', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px' }}
+          >
+            <SignOut size={20} /> Logout
+          </button>
         </div>
         
         {/* Search Bar */}
