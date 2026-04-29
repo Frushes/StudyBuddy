@@ -39,11 +39,11 @@ function LearnerDashboard({ username, setGlobalUsername }) {
   const filteredRooms = publicRooms.filter(r => r.name.toLowerCase().includes(search.toLowerCase()) || (r.subject && r.subject.toLowerCase().includes(search.toLowerCase())));
 
   return (
-    <div style={{ padding: '40px', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+    <div style={{ padding: 'clamp(15px, 5vw, 40px)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Welcome back, {username}!</h1>
+            <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', marginBottom: '8px' }}>Welcome back, {username}!</h1>
             <p style={{ color: 'var(--text-muted)' }}>Join an explicitly created room or launch a private session.</p>
           </div>
           <button 
@@ -56,7 +56,7 @@ function LearnerDashboard({ username, setGlobalUsername }) {
         </div>
         
         {/* Search Bar */}
-        <div style={{ position: 'relative', width: '350px' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
           <MagnifyingGlass size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '15px', top: '12px' }} />
           <input 
             type="text" 
@@ -74,7 +74,7 @@ function LearnerDashboard({ username, setGlobalUsername }) {
       <div>
         <h2 style={{ fontSize: '1.4rem', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Admin Official Rooms</h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '25px' }}>
           {filteredRooms.map(room => (
             <div 
               key={room.id}
@@ -94,7 +94,7 @@ function LearnerDashboard({ username, setGlobalUsername }) {
                 </span>
               </div>
               
-              <div style={{ display: 'flex', gap: '15px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', gap: '15px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px', flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><Hash size={16} /> {room.subject || 'General'}</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: room.activeUserCount > 0 ? '#2ecc71' : 'inherit' }}>
                   <Users size={16} /> {room.activeUserCount || 0} Online
@@ -111,22 +111,23 @@ function LearnerDashboard({ username, setGlobalUsername }) {
 
       <div className="glass-panel" style={{ maxWidth: '500px', alignSelf: 'center', marginTop: '20px', textAlign: 'center', width: '100%' }}>
         <h2 style={{ fontSize: '1.4rem', marginBottom: '20px' }}>Join a Study Session</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
           <input 
             type="text" 
             placeholder="Enter Room Code (e.g. core-cs)"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
             style={{
-              flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color)',
+              width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color)',
               background: 'rgba(255,255,255,0.05)', color: 'white', outline: 'none', fontSize: '1rem',
               textAlign: 'center'
             }}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
           />
-          <button onClick={handleJoin} className="btn-primary" style={{ padding: '0 25px' }}>Enter Room</button>
+          <button onClick={handleJoin} className="btn-primary" style={{ padding: '14px' }}>Enter Room</button>
         </div>
       </div>
+    </div>
     </div>
   );
 }

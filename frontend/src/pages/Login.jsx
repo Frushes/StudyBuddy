@@ -50,21 +50,21 @@ function Login({ setGlobalUsername, socket }) {
   };
 
   return (
-    <div className="center" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '40px' }}>
-      <h1 className="title-main" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>
+    <div className="center" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: 'clamp(20px, 5vw, 40px)' }}>
+      <h1 className="title-main" style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', marginBottom: '10px', textAlign: 'center' }}>
         <BookOpenText size={48} weight="fill" color="var(--accent-color)" /> Study Buddy Platform
       </h1>
-      <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '40px' }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(1rem, 3vw, 1.2rem)', marginBottom: '40px', textAlign: 'center' }}>
         Select your module to enter the workspace.
       </p>
 
-      <div style={{ display: 'flex', gap: '25px', marginBottom: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: '25px', marginBottom: '40px', flexWrap: 'wrap', justifyContent: 'center', width: '100%' }}>
         {/* Learner */}
         <div
           className="glass-panel"
           onClick={() => setSelectedRole('Learner')}
           style={{
-            width: '320px', cursor: 'pointer', transition: 'var(--transition)',
+            width: '100%', maxWidth: '320px', cursor: 'pointer', transition: 'var(--transition)',
             border: selectedRole === 'Learner' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
             transform: selectedRole === 'Learner' ? 'translateY(-5px)' : 'none',
             boxShadow: selectedRole === 'Learner' ? 'var(--shadow-glow)' : 'none',
@@ -85,7 +85,7 @@ function Login({ setGlobalUsername, socket }) {
           className="glass-panel"
           onClick={() => setSelectedRole('Admin')}
           style={{
-            width: '320px', cursor: 'pointer', transition: 'var(--transition)',
+            width: '100%', maxWidth: '320px', cursor: 'pointer', transition: 'var(--transition)',
             border: selectedRole === 'Admin' ? '2px solid #ff9f43' : '1px solid var(--border-color)',
             transform: selectedRole === 'Admin' ? 'translateY(-5px)' : 'none',
             boxShadow: selectedRole === 'Admin' ? '0 0 20px rgba(255, 159, 67, 0.3)' : 'none',
@@ -103,7 +103,7 @@ function Login({ setGlobalUsername, socket }) {
       </div>
 
       {selectedRole && (
-        <form className="glass-panel" onSubmit={handleAuth} style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <form className="glass-panel" onSubmit={handleAuth} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <h3 style={{ textAlign: 'center', marginBottom: '5px' }}>
             {isRegister ? `Create ${selectedRole} Account` : `Sign in as ${selectedRole}`}
           </h3>

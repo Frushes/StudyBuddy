@@ -142,3 +142,38 @@ input:focus, textarea:focus {
 .flex-col { display: flex; flex-direction: column; }
 .space-between { justify-content: space-between; }
 .center { justify-content: center; align-items: center; }
+
+/* Mobile Responsiveness */
+@media (max-width: 1100px) {
+  .app-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    padding: 10px;
+    gap: 15px;
+    overflow-y: visible;
+  }
+  
+  body {
+    overflow-y: auto;
+  }
+
+  .side-panel {
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .main-focus-area {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 600px) {
+  .glass-panel {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .title-main {
+    font-size: 1.2rem;
+  }
+}
