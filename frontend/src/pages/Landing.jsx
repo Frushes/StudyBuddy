@@ -29,7 +29,7 @@ function Landing() {
           <span style={{ cursor: 'pointer' }}>Discover</span>
           <span style={{ cursor: 'pointer' }}>Safety</span>
           <span style={{ cursor: 'pointer' }}>Support</span>
-          <span style={{ cursor: 'pointer' }}>Blog</span>
+          <span style={{ cursor: 'pointer' }}>Vlog</span>
         </div>
         <button
           onClick={() => navigate('/login')}
