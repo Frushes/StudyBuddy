@@ -30,7 +30,7 @@ function AdminDashboard({ username, setGlobalUsername }) {
       const res = await fetch(`${API_BASE_URL}/api/rooms`);
       if (res.ok) {
         const data = await res.json();
-        setRooms(data);
+        setRooms(data.filter(room => room.host === username));
       }
     } catch (err) { console.error(err); }
   };
